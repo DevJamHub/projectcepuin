@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react' // Tambahkan Suspense di sini
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Mail, Lock, Loader2, ArrowLeft, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
 
-export default function LoginPage() {
+// 1. Buat komponen terpisah untuk konten yang pakai useSearchParams
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/'
@@ -44,7 +45,7 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <Link 
             href="/"
-            className="inline-flex items-center gap-2 p-3 bg-white rounded-2xl shadow-sm text-muted hover:text-primary transition-all active:scale-95 mb-4"
+            className="inline-flex items-center gap-2 p-3 bg-white rounded-2xl shadow-sm text-foreground hover:text-primary transition-all active:scale-95 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
@@ -55,7 +56,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-black text-foreground uppercase tracking-tight mt-6">
             Masuk Petugas
           </h1>
-          <p className="text-xs font-bold text-muted uppercase tracking-widest">
+          <p className="text-xs font-bold text-foreground uppercase tracking-widest">
             Dashboard Administrasi Cepuin
           </p>
         </div>
@@ -71,9 +72,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-2">Email Petugas</label>
+              <label className="text-[10px] font-black text-foreground uppercase tracking-widest ml-2">Email Petugas</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
                 <input 
                   type="email" 
                   value={email}
@@ -86,9 +87,9 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-2">Kata Sandi</label>
+              <label className="text-[10px] font-black text-foreground uppercase tracking-widest ml-2">Kata Sandi</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
                 <input 
                   type="password" 
                   value={password}
@@ -127,10 +128,23 @@ export default function LoginPage() {
         </div>
 
         {/* Help Footer */}
-        <p className="text-[10px] text-center font-bold text-muted uppercase tracking-widest">
+        <p className="text-[10px] text-center font-bold text-foreground uppercase tracking-widest">
           Lupa akses? Hubungi tim IT Pemerintah Kota.
         </p>
       </div>
     </main>
+  )
+}
+
+// 2. Fungsi utama yang akan dipanggil Next.js, dibungkus Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
