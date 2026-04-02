@@ -10,7 +10,10 @@ import { cn } from "@/lib/cn";
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
+
+  // ✅ prevent open redirect
+  const nextParam = searchParams.get("next");
+  const next = nextParam && nextParam.startsWith("/") ? nextParam : "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +22,13 @@ export default function LoginClient() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ basic validation
+    if (!email || !password) {
+      setError("Email dan password wajib diisi");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -29,9 +39,13 @@ export default function LoginClient() {
       });
 
       if (error) throw error;
+
+      // ✅ refresh session (penting di Next.js app router)
+      router.refresh();
       router.push(next);
-    } catch (err) {
-      setError((err as Error).message);
+    } catch (err: any) {
+      // ✅ safer error handling
+      setError(err?.message || "Terjadi kesalahan saat login");
     } finally {
       setIsLoading(false);
     }
@@ -40,10 +54,12 @@ export default function LoginClient() {
   return (
     <main className="min-h-screen bg-muted-light flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
+
+        {/* HEADER */}
         <div className="text-center space-y-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 p-3 bg-white rounded-2xl shadow-sm text-muted hover:text-primary transition-all active:scale-95 mb-4"
+            className="inline-flex items-center gap-2 p-3 bg-white rounded-2xl shadow-sm text-foreground hover:text-primary transition-all active:scale-95 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">
@@ -59,12 +75,14 @@ export default function LoginClient() {
             Masuk Petugas
           </h1>
 
-          <p className="text-xs font-bold text-muted uppercase tracking-widest">
+          <p className="text-xs font-bold text-foreground uppercase tracking-widest">
             Dashboard Administrasi Cepuin
           </p>
         </div>
 
+        {/* FORM */}
         <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-border/50 space-y-6">
+          
           <div className="flex items-center gap-3 p-4 bg-primary-light/30 rounded-2xl border border-primary/10">
             <ShieldCheck className="w-5 h-5 text-primary" />
             <p className="text-[10px] font-bold text-primary-dark uppercase leading-relaxed">
@@ -73,16 +91,19 @@ export default function LoginClient() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            
+            {/* EMAIL */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-2">
+              <label className="text-[10px] font-black text-foreground uppercase tracking-widest ml-2">
                 Email Petugas
               </label>
 
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
                 <input
                   type="email"
                   value={email}
+                  disabled={isLoading}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@cepuin.id"
                   required
@@ -91,16 +112,18 @@ export default function LoginClient() {
               </div>
             </div>
 
+            {/* PASSWORD */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-2">
+              <label className="text-[10px] font-black text-foreground uppercase tracking-widest ml-2">
                 Kata Sandi
               </label>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
                 <input
                   type="password"
                   value={password}
+                  disabled={isLoading}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
@@ -109,19 +132,21 @@ export default function LoginClient() {
               </div>
             </div>
 
+            {/* ERROR */}
             {error && (
               <div className="p-4 bg-danger-light/50 border border-danger/20 rounded-2xl text-[10px] font-bold text-danger uppercase text-center animate-in shake duration-300">
                 {error}
               </div>
             )}
 
+            {/* BUTTON */}
             <button
               type="submit"
               disabled={isLoading}
               className={cn(
                 "w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white transition-all duration-300 shadow-xl flex items-center justify-center gap-2",
                 isLoading
-                  ? "bg-muted"
+                  ? "bg-muted cursor-not-allowed"
                   : "bg-primary hover:bg-primary-dark active:scale-95 shadow-primary/20"
               )}
             >
@@ -134,12 +159,14 @@ export default function LoginClient() {
                 "Masuk Sekarang"
               )}
             </button>
+
           </form>
         </div>
 
-        <p className="text-[10px] text-center font-bold text-muted uppercase tracking-widest">
+        <p className="text-[10px] text-center font-bold text-foreground uppercase tracking-widest">
           Lupa akses? Hubungi tim IT Pemerintah Kota.
         </p>
+
       </div>
     </main>
   );
